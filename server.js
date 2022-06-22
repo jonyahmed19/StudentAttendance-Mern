@@ -10,6 +10,4 @@ app.get("/", (req, res) => {
   res.json(obj);
 });
 
-app.listen(4000, () => {
-  console.log("Hello");
-});
+app.listen(4000, () => {});
