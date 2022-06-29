@@ -3,6 +3,7 @@ const connectDB = require("./db");
 const User = require("./models/User");
 const bcrypt = require("bcrypt");
 const app = express();
+const jwt = require("jsonwebtoken");
 
 /**
  *
@@ -39,11 +40,29 @@ app.post("/login", async (req, res, next) => {
     }
 
     delete user._doc.password;
+    const token = jwt.sign(user?._doc, "jony", { expiresIn: "2h" });
 
-    return res.status(200).json({ message: "Login successful", user });
+    return res.status(200).json({ message: "Login successful", token });
   } catch (e) {
     next(e);
   }
+});
+
+/**
+ * /private endpoint
+ */
+
+app.get("/private", (req, res) => {
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const user = jwt.verify(token, "jony");
+  if (user) {
+    return res.status(401).json({ message: "User not found" });
+  }
+  return res.status(200).json({ message: "User Authorized" });
 });
 
 /**
