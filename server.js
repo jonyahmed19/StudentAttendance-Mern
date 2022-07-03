@@ -1,9 +1,9 @@
 const express = require("express");
 const connectDB = require("./db");
-const User = require("./models/User");
-const bcrypt = require("bcrypt");
 const app = express();
-const jwt = require("jsonwebtoken");
+const authenticate = require("./middleware/authenticate");
+
+const routes = require("./routes");
 
 /**
  *
@@ -11,88 +11,17 @@ const jwt = require("jsonwebtoken");
  */
 
 app.use(express.json());
+app.use(routes);
 
 const localLogger = (req, res, next) => {
   console.log(req.url, req.method);
-
   return res.json([{ works: "works" }]);
 };
-
-/**
- * /login endpoint
- * Email, Password
- * Firstly find user by email
- * Email, Password need to match
- */
-
-app.post("/login", async (req, res, next) => {
-  const { email, password } = req.body;
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: "Invalid credential" });
-    }
-
-    const isValidPassowrd = await bcrypt.compare(password, user.password);
-
-    if (!isValidPassowrd) {
-      return res.status(400).json({ message: "Invalid credential" });
-    }
-
-    delete user._doc.password;
-    const token = jwt.sign(user?._doc, "jony", { expiresIn: "2h" });
-
-    return res.status(200).json({ message: "Login successful", token });
-  } catch (e) {
-    next(e);
-  }
-});
-
 /**
  * /private endpoint
  */
-
-app.get("/private", (req, res) => {
+app.get("/private", authenticate, async (req, res) => {
   return res.status(200).json({ message: "User Authorized" });
-});
-
-/**
- * /register endpoint
- * Name, Email, password
- * Find user by email
- * Password should be hash
- */
-
-app.post("/register", async (req, res, next) => {
-  const { name, email, password } = req.body;
-
-  if (!name || !email || !password) {
-    return res.status(400).json({ message: "Fields must not be empty!" });
-  }
-  try {
-    /**
-     * Checking email exists or not
-     */
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ message: "User already exist" });
-    }
-
-    user = new User({
-      name,
-      email,
-      password,
-    });
-
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(password, salt);
-    user.password = hash;
-
-    await user.save();
-    return res.status(201).json({ message: "User registered successfully" });
-  } catch (e) {
-    next(e);
-  }
 });
 
 app.get("/", localLogger, (req, res, next) => {
@@ -102,9 +31,7 @@ app.get("/", localLogger, (req, res, next) => {
 /**
  * Database error checking
  */
-
 app.use((err, req, res, next) => {
-  console.log(err);
   res.status(500).json({ message: "Server error occurred" });
 });
 
