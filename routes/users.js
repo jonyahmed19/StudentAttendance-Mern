@@ -10,12 +10,6 @@ router.get("/:userId", usersController.getUserByID);
 
 /**
  * Update user by id
- * @method PUT
- */
-router.put("/:userId", usersController.postUserById);
-
-/**
- * Update user by id
  * @method PATCH
  */
 router.patch(":/userId", usersController.patchUserById);

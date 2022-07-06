@@ -2,11 +2,12 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 
 const authenticate = async (req, res, next) => {
-  let token = req.headers.authorization;
+  let token = req.headers?.authorization;
   try {
     if (!token) {
       return res.status(401).json({ message: "Unauthorized" });
     }
+    token = token.split(" ")[1];
     const decoded = jwt.verify(token, "jony");
 
     console.log("Decoded", decoded);

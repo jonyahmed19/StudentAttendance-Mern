@@ -2,7 +2,7 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const registerServie = async () => {
+const registerServie = async ({ name, email, password }) => {
   /**
    * Checking email exists or not
    */
@@ -23,8 +23,9 @@ const registerServie = async () => {
 
   await user.save();
 };
-const loginServie = async () => {
+const loginServie = async ({ email, password }) => {
   const user = await User.findOne({ email });
+
   if (!user) {
     return res.status(400).json({ message: "Invalid credential" });
   }
@@ -37,6 +38,7 @@ const loginServie = async () => {
 
   delete user._doc.password;
   const token = jwt.sign(user?._doc, "jony", { expiresIn: "2h" });
+  return token;
 };
 
 module.exports = {
