@@ -12,7 +12,8 @@ router.get("/:userId", usersController.getUserByID);
  * Update user by id
  * @method PATCH
  */
-router.patch(":/userId", usersController.patchUserById);
+router.patch("/:userId", usersController.patchUserById);
+router.put("/:userId", usersController.putUserById);
 
 /**
  * Delete user by id

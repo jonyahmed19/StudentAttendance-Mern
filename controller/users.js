@@ -50,14 +50,16 @@ const patchUserById = async (req, res, next) => {
   const { userId } = req.params;
   const { name, roles, accountStatus } = req.body;
 
+  console.log("Patch Request");
   try {
     const user = await userService.findUserByProperty("_id", userId);
+
     if (!user) {
       throw error("User not found", 404);
     }
 
     user.name = name ?? user.name;
-    user.roles = roles ?? user.roles;
+    user.role = roles ?? user.role;
     user.accountStatus = accountStatus ?? user.accountStatus;
 
     await user.save();
@@ -80,6 +82,27 @@ const deleteUserById = async (req, res, next) => {
     next(e);
   }
 };
+const putUserById = async (req, res, next) => {
+  const { userId } = req.params;
+  const { name, email, roles, accountStatus } = req.body;
+
+  try {
+    const user = await userService.updateUser(userId, {
+      name,
+      email,
+      roles,
+      accountStatus,
+    });
+
+    if (!user) {
+      throw error("User not found", 404);
+    }
+
+    return res.status(200).json(user);
+  } catch (e) {
+    next(e);
+  }
+};
 
 module.exports = {
   getUsers,
@@ -87,4 +110,5 @@ module.exports = {
   postUser,
   deleteUserById,
   patchUserById,
+  putUserById,
 };
