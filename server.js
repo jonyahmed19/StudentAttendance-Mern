@@ -35,9 +35,9 @@ app.get("/", (req, res, next) => {
 /**
  * Database error checking
  */
-app.use((err, req, res, next) => {
-  res.status(500).json({ message: "Server error occurred" });
-});
+// app.use((err, req, res, next) => {
+//   res.status(500).json({ message: "Server error occurred" });
+// });
 
 connectDB("mongodb://localhost:27017/attendance-db")
   .then(() => {

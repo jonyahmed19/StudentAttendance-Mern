@@ -1,14 +1,21 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { findUserByProperty, createNewUser } = require("./user");
 
-const registerServie = async ({ name, email, password }) => {
+const registerServie = async ({
+  name,
+  email,
+  password,
+  roles,
+  accountStatus,
+}) => {
   /**
    * Checking email exists or not
    */
-  let user = await User.findOne({ email });
+  let user = await findUserByProperty("email", email);
   if (user) {
-    return res.status(400).json({ message: "User already exist" });
+    throw error("User already exist", 400);
   }
 
   user = new User({
@@ -19,25 +26,30 @@ const registerServie = async ({ name, email, password }) => {
 
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(password, salt);
-  user.password = hash;
-
-  await user.save();
+  return createNewUser({ name, email, password: hash, roles, accountStatus });
 };
 const loginServie = async ({ email, password }) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    return res.status(400).json({ message: "Invalid credential" });
+    throw error("Invalid credential", 400);
   }
 
   const isValidPassowrd = await bcrypt.compare(password, user.password);
 
   if (!isValidPassowrd) {
-    return res.status(400).json({ message: "Invalid credential" });
+    throw error("Invalid credential", 400);
   }
 
-  delete user._doc.password;
-  const token = jwt.sign(user?._doc, "jony", { expiresIn: "2h" });
+  const payload = {
+    _id: user.id,
+    name: user.name,
+    email: user.email,
+    roles: user.roles,
+    accountStatus: user.accountStatus,
+  };
+
+  const token = jwt.sign(payload, "jony", { expiresIn: "2h" });
   return token;
 };
 
